@@ -32,6 +32,12 @@
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/semi": ["warn"],
-    "@typescript-eslint/member-delimiter-style": ["warn"]
+    "@typescript-eslint/member-delimiter-style": ["warn"],
+
+    // Use experimental version of unused vars, because the stable one
+    // even warns about unused vars with an underscore before them, which is the typescript notation
+    // for unused variables.
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars-experimental": "warn"
   }
 }

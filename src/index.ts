@@ -115,6 +115,7 @@ class G810LedLightBulb implements AccessoryPlugin {
    */
   identify(): void {
     // TODO: implement pulsing
+    this.log('Identify!');
   }
 
   /*
