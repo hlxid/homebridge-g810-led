@@ -44,14 +44,20 @@ export = (api: API) => {
   api.registerAccessory(ACCESSORY_NAME, G810LedLightBulb);
 };
 
+interface G810LedState {
+  enabled: boolean;
+  brightness: number;
+  saturation: number;
+  hue: number;
+}
+
 class G810LedLightBulb implements AccessoryPlugin {
 
   private readonly log: Logging;
   private readonly name: string;
-  private bulbOn = false;
-  private brightness = 0;
-  private saturation = 0;
-  private hue = 0;
+  private readonly state: G810LedState = {
+    enabled: false, brightness: 0, saturation: 0, hue: 0,
+  };
 
   private readonly bulbService: Service;
   private readonly informationService: Service;
@@ -62,51 +68,40 @@ class G810LedLightBulb implements AccessoryPlugin {
 
     this.bulbService = new hap.Service.Lightbulb(this.name);
     this.bulbService.getCharacteristic(hap.Characteristic.On)
-      .on('get', (callback: CharacteristicGetCallback) => {
-        callback(undefined, this.bulbOn);
-      })
-      .on('set', (value, callback: CharacteristicSetCallback) => {
-        this.bulbOn = value;
-        log.info('G810Led was set to: ' + (this.bulbOn ? 'ON' : 'OFF'));
-        callback();
-      });
+      .on('get', this.charGet('enabled'))
+      .on('set', this.charSet('enabled'));
 
     this.bulbService.getCharacteristic(hap.Characteristic.Brightness)
-      .on('get', (callback: CharacteristicGetCallback) => {
-        callback(undefined, this.brightness);
-      })
-      .on('set', (value, callback: CharacteristicSetCallback) => {
-        this.brightness = value;
-        log.info('G810Led brightness was set to: ' + this.brightness);
-        callback();
-      });
+      .on('get', this.charGet('brightness'))
+      .on('set', this.charSet('brightness'));
 
     this.bulbService.getCharacteristic(hap.Characteristic.Saturation)
-      .on('get', (callback: CharacteristicGetCallback) => {
-        callback(undefined, this.saturation);
-      })
-      .on('set', (value, callback: CharacteristicSetCallback) => {
-        this.saturation = value;
-        log.info('G810Led saturation was set to: ' + value);
-        callback();
-      });
+      .on('get', this.charGet('saturation'))
+      .on('set', this.charSet('saturation'));
 
     this.bulbService.getCharacteristic(hap.Characteristic.Hue)
-      .on('get', (callback: CharacteristicGetCallback) => {
-        callback(undefined, this.hue);
-      })
-      .on('set', (value, callback: CharacteristicSetCallback) => {
-        this.hue = value;
-        log.info('G810Led hue was set to: ' + value);
-        callback();
-      });
-
+      .on('get', this.charGet('hue'))
+      .on('set', this.charSet('hue'));
 
     this.informationService = new hap.Service.AccessoryInformation()
-      .setCharacteristic(hap.Characteristic.Manufacturer, 'Soßen Hersteller')
-      .setCharacteristic(hap.Characteristic.Model, 'Soos 3000');
+      .setCharacteristic(hap.Characteristic.Manufacturer, 'Logitech')
+      .setCharacteristic(hap.Characteristic.Model, 'G810-led lib powered keyboard');
 
     log.info('G810-led finished initializing!');
+  }
+
+  private charGet(name: keyof G810LedState) {
+    return (cb: CharacteristicGetCallback) => {
+      cb(undefined, this.state[name]);
+    };
+  }
+
+  private charSet<K extends keyof G810LedState>(name: K) {
+    return ((value: G810LedState[K], cb: CharacteristicSetCallback) => {
+      this.state[name] = value;
+      this.log.info(`${name} was set to "${this.state[name]}"`);
+      cb();
+    }) as (value: unknown, cb: CharacteristicSetCallback) => void;
   }
 
   /*
