@@ -10,6 +10,8 @@ import {
 } from 'homebridge';
 
 import { ACCESSORY_NAME } from './settings';
+import { Server } from 'ws';
+import * as convert from 'color-convert';
 
 /*
  * IMPORTANT NOTICE
@@ -44,27 +46,57 @@ export = (api: API) => {
   api.registerAccessory(ACCESSORY_NAME, G810LedLightBulb);
 };
 
-interface G810LedState {
+interface LightState {
   enabled: boolean;
   brightness: number;
   saturation: number;
   hue: number;
 }
 
+interface G810LedConfig extends AccessoryConfig {
+  port?: number;
+  rgb?: boolean;
+}
+
+interface RGBData {
+  r: number;
+  g: number;
+  b: number;
+}
+
+function rgbFromLightState(state: LightState): RGBData {
+  if (!state.enabled) {
+    return { r: 0, g: 0, b: 0 };
+  }
+
+  const rgb = convert.hsv.rgb([state.hue, state.saturation, state.brightness]);
+  return {
+    r: rgb[0],
+    g: rgb[1],
+    b: rgb[2],
+  };
+}
+
 class G810LedLightBulb implements AccessoryPlugin {
 
-  private readonly log: Logging;
-  private readonly name: string;
-  private readonly state: G810LedState = {
+  private readonly config: G810LedConfig;
+  private ws?: Server;
+
+  private readonly state: LightState = {
     enabled: false, brightness: 0, saturation: 0, hue: 0,
   };
 
+  private rgb: RGBData = rgbFromLightState(this.state);
+
+
+  private readonly name: string;
   private readonly bulbService: Service;
   private readonly informationService: Service;
 
-  constructor(log: Logging, config: AccessoryConfig, _api: API) {
+  constructor(private readonly log: Logging, config: AccessoryConfig, _api: API) {
     this.log = log;
     this.name = config.name;
+    this.config = config as G810LedConfig;
 
     this.bulbService = new hap.Service.Lightbulb(this.name);
     this.bulbService.getCharacteristic(hap.Characteristic.On)
@@ -75,31 +107,47 @@ class G810LedLightBulb implements AccessoryPlugin {
       .on('get', this.charGet('brightness'))
       .on('set', this.charSet('brightness'));
 
-    this.bulbService.getCharacteristic(hap.Characteristic.Saturation)
-      .on('get', this.charGet('saturation'))
-      .on('set', this.charSet('saturation'));
+    if (this.config.rgb) {
+      this.bulbService.getCharacteristic(hap.Characteristic.Saturation)
+        .on('get', this.charGet('saturation'))
+        .on('set', this.charSet('saturation'));
 
-    this.bulbService.getCharacteristic(hap.Characteristic.Hue)
-      .on('get', this.charGet('hue'))
-      .on('set', this.charSet('hue'));
+      this.bulbService.getCharacteristic(hap.Characteristic.Hue)
+        .on('get', this.charGet('hue'))
+        .on('set', this.charSet('hue'));
+    }
 
     this.informationService = new hap.Service.AccessoryInformation()
       .setCharacteristic(hap.Characteristic.Manufacturer, 'Logitech')
       .setCharacteristic(hap.Characteristic.Model, 'G810-led lib powered keyboard');
 
+    const port = this.config.port ?? 13400;
+    this.ws = new Server({ port }, () => {
+      this.log(`WS server successfully started at port ${port}.`);
+    });
+
+    this.ws.on('connection', (sock) => {
+      this.log(`A new client connected: ${sock.url}`);
+      sock.send(JSON.stringify(this.rgb));
+    });
+
     log.info('G810-led finished initializing!');
   }
 
-  private charGet(name: keyof G810LedState) {
+  private charGet(name: keyof LightState) {
     return (cb: CharacteristicGetCallback) => {
       cb(undefined, this.state[name]);
     };
   }
 
-  private charSet<K extends keyof G810LedState>(name: K) {
-    return ((value: G810LedState[K], cb: CharacteristicSetCallback) => {
+  private charSet<K extends keyof LightState>(name: K) {
+    return ((value: LightState[K], cb: CharacteristicSetCallback) => {
       this.state[name] = value;
       this.log.info(`${name} was set to "${this.state[name]}"`);
+      this.rgb = rgbFromLightState(this.state);
+      this.ws?.clients.forEach(client => {
+        client.send(JSON.stringify(this.rgb));
+      });
       cb();
     }) as (value: unknown, cb: CharacteristicSetCallback) => void;
   }
@@ -123,5 +171,4 @@ class G810LedLightBulb implements AccessoryPlugin {
       this.bulbService,
     ];
   }
-
 }
