@@ -11,6 +11,7 @@ import {
 
 import { ACCESSORY_NAME } from './settings';
 import { Server } from 'ws';
+import { G810LedConfig, LightState, RGBData } from './dto';
 import * as convert from 'color-convert';
 
 /*
@@ -46,23 +47,7 @@ export = (api: API) => {
   api.registerAccessory(ACCESSORY_NAME, G810LedLightBulb);
 };
 
-interface LightState {
-  enabled: boolean;
-  brightness: number;
-  saturation: number;
-  hue: number;
-}
 
-interface G810LedConfig extends AccessoryConfig {
-  port?: number;
-  rgb?: boolean;
-}
-
-interface RGBData {
-  r: number;
-  g: number;
-  b: number;
-}
 
 function rgbFromLightState(state: LightState): RGBData {
   if (!state.enabled) {
