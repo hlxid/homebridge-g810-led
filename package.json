@@ -3,7 +3,7 @@
   "displayName": "g810-led",
   "name": "homebridge-g810-led",
   "version": "1.0.0",
-  "description": "A short description about what your plugin does.",
+  "description": "Controlls Logitech keyboard lighting using g810-led under linux.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
