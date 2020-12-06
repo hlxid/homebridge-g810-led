@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import WebSocket = require('ws');
 import { RGBData } from '../dto';
 import { exec } from 'child_process';
