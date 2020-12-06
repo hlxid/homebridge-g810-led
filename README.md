@@ -1,4 +1,4 @@
-# homebridge-g810-ed
+# homebridge-g810-led
 
 This homebridge plugin allows controlling the lighting of Logitech keyboards under linux using [g810-led](https://github.com/MatMoul/g810-led).
 
@@ -9,7 +9,7 @@ The homebridge plugin will create a websocket server which provides the values t
 Install the plugin using npm:
 
 ```shell
-$ sudo npm install -g homebridge-g810-led
+$ sudo npm install -g homebridge-logitech-keyboard
 ```
 
 After that restart your homebridge and create a new accessory. Here's a example config:
@@ -33,16 +33,16 @@ You should set `rgb` to `true` if your keyboard supports RGB. If it is set to `f
 
 This client will connect to the websocket server of this plugin, get the color and use `g810-led` to update the lighting of your keyboard. You need to have [g810-led](https://github.com/MatMoul/g810-led/blob/master/INSTALL.md) installed.
 
-Install the `homebridge-g810-led` package:
+Install the `homebridge-logitech-keyboard` package:
 
 ```shell
-$ sudo npm install -g homebridge-g810-led
+$ sudo npm install -g homebridge-logitech-keyboard
 ```
 
 Temporarily start the client using this command:
 
 ```shell
-$ homebridge-g810-led-client -c g810-led -s ws://<homebridge-ip>:<port>
+$ homebridge-logitech-keyboard-client -c g810-led -s ws://<homebridge-ip>:<port>
 ```
 
 You may want to change the `-c` (command) parameter to use the correct command for your keyboard. Refer to [this](https://github.com/MatMoul/g810-led#help-) page to see all available commands.
@@ -57,7 +57,7 @@ To use pm2 first install it, start the client using following commands and save 
 
 ```shell
 $ sudo npm install -g pm2
-$ pm2 start homebridge-g810-led-client -- -c g810-led -s ws://<homebridge-ip>:<port>
+$ pm2 start homebridge-logitech-keyboard-client -- -c g810-led -s ws://<homebridge-ip>:<port>
 $ pm2 save
 ```
 

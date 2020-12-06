@@ -1,7 +1,6 @@
 {
-  "private": true,
   "displayName": "g810-led",
-  "name": "homebridge-g810-led",
+  "name": "homebridge-logitech-keyboard",
   "version": "1.0.0",
   "description": "Controlls Logitech keyboard lighting using g810-led under linux.",
   "license": "Apache-2.0",
@@ -47,6 +46,6 @@
     "typescript": "^4.0.2"
   },
   "bin": {
-    "homebridge-g810-led-client": "./dist/client/index.js"
+    "homebridge-logitech-keyboard-client": "./dist/client/index.js"
   }
 }
