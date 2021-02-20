@@ -51,20 +51,26 @@ The `-s` (server) parameter sets the server. Change the ip and port accordingly.
 
 After you executed the command you can test whether everything works.
 
-As a permanent install I recommend [pm2](https://pm2.keymetrics.io/) to start the client if you start your computer. You may also use a systemd service or other way to start the client.
+As a permanent install I recommend creating a systemd service unit to start the client if you start your computer.
 
-To use pm2 first install it, start the client using following commands and save the process:
+To use a systemd service create a file at `/etc/systemd/system/homebridge-g810.service` with the following contents:
+```
+[Unit]
+Description=Homebridge g810-led client
+After=network-online.target
 
-```shell
-$ sudo npm install -g pm2
-$ pm2 start homebridge-logitech-keyboard-client -- -c g810-led -s ws://<homebridge-ip>:<port>
-$ pm2 save
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'homebridge-g810-led-client -c g810-led -s ws://<homebridge-ip>:<port>'
+
+[Install]
+WantedBy=multi-user.target
 ```
 
-Then setup pm2 to start at startup:
+Then reload systemd and enable the service:
 
 ```shell
-$ pm2 startup
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable homebridge-g810.service
+$ sudo systemctl start homebridge-g810.service
 ```
-
-Note that it says how you can set it up and you might still need to execute a command that it prints.
