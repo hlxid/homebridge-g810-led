@@ -33,21 +33,17 @@ You should set `rgb` to `true` if your keyboard supports RGB. If it is set to `f
 
 This client will connect to the websocket server of this plugin, get the color and use `g810-led` to update the lighting of your keyboard. You need to have [g810-led](https://github.com/MatMoul/g810-led/blob/master/INSTALL.md) installed.
 
-Install the `homebridge-logitech-keyboard` package:
-
-```shell
-$ sudo npm install -g homebridge-logitech-keyboard
-```
+A precompiled static binary for x86_64 is available in each GitHub release. Download it and add it to your `PATH`. If you need it for another architecutre you'll need to compile it yourself using `go build` in the `go-client` directory.
 
 Temporarily start the client using this command:
 
 ```shell
-$ homebridge-logitech-keyboard-client -c g810-led -s ws://<homebridge-ip>:<port>
+$ homebridge-g810-led-client --command g810-led --server ws://<homebridge-ip>:<port>
 ```
 
-You may want to change the `-c` (command) parameter to use the correct command for your keyboard. Refer to [this](https://github.com/MatMoul/g810-led#help-) page to see all available commands.
+You may want to change the `--command` parameter to use the correct command for your keyboard. Refer to [this](https://github.com/MatMoul/g810-led#help-) page to see all available commands.
 
-The `-s` (server) parameter sets the server. Change the ip and port accordingly.
+The `--server` parameter sets the server. Change the ip and port accordingly.
 
 After you executed the command you can test whether everything works.
 
@@ -61,7 +57,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/bin/sh -c 'homebridge-g810-led-client -c g810-led -s ws://<homebridge-ip>:<port>'
+ExecStart=/bin/sh -c 'homebridge-g810-led-client --command g810-led --server ws://<homebridge-ip>:<port>'
 
 [Install]
 WantedBy=multi-user.target
