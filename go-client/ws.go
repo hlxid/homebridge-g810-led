@@ -2,14 +2,16 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
+	"net"
 
-	"nhooyr.io/websocket"
+	"github.com/gorilla/websocket"
 )
 
 type wsMessage struct {
-	MessageType websocket.MessageType
-	Data []byte
+	MessageType int
+	Data        []byte
 }
 
 func (msg *wsMessage) StringData() string {
@@ -17,7 +19,7 @@ func (msg *wsMessage) StringData() string {
 }
 
 func connectWS(server string, ctx context.Context) *websocket.Conn {
-	conn, _, err := websocket.Dial(ctx, server, nil)
+	conn, _, err := websocket.DefaultDialer.DialContext(ctx, server, nil)
 	if err != nil {
 		log.Fatalln("cannot connect to websocket server:", err)
 	}
@@ -25,19 +27,26 @@ func connectWS(server string, ctx context.Context) *websocket.Conn {
 	return conn
 }
 
-func buildWsRecvChan(conn *websocket.Conn, ctx context.Context) <-chan wsMessage {
+func buildWsRecvChan(conn *websocket.Conn) <-chan wsMessage {
 	c := make(chan wsMessage)
 
 	go (func() {
 		for {
-			msgType, data, err := conn.Read(ctx)
+			msgType, data, err := conn.ReadMessage()
 			if err != nil {
-				continue;
+				if errors.Is(err, net.ErrClosed) {
+					log.Println("Connection has been closed.")
+					return
+				}
+
+				log.Println("Error while reading message:", err)
+
+				continue
 			}
 
-			c <- wsMessage {
+			c <- wsMessage{
 				MessageType: msgType,
-				Data: data,
+				Data:        data,
 			}
 		}
 	})()
@@ -46,7 +55,8 @@ func buildWsRecvChan(conn *websocket.Conn, ctx context.Context) <-chan wsMessage
 }
 
 func handleWSMessage(msg wsMessage, command string) {
-	if msg.MessageType != websocket.MessageText {
+	if msg.MessageType != websocket.TextMessage {
+		log.Println("Received ws message of unsupported type:", msg.MessageType)
 		return
 	}
 

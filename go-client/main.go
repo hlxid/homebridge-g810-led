@@ -8,8 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"nhooyr.io/websocket"
 )
 
 func main() {
@@ -22,17 +20,19 @@ func main() {
 	defer cancel()
 
 	conn := connectWS(server, ctx)
-	defer conn.Close(websocket.StatusInternalError, "stopped client")
+	defer conn.Close()
 	log.Println("Connected to websocket server.")
 
-	wsChan := buildWsRecvChan(conn, ctx)
+	wsChan := buildWsRecvChan(conn)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	for {
 		select {
-		case msg := <-wsChan: handleWSMessage(msg, command)
-		case <-sigChan: return
+		case msg := <-wsChan:
+			handleWSMessage(msg, command)
+		case <-sigChan:
+			return
 		}
 	}
 }

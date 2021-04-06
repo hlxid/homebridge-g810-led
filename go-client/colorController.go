@@ -7,9 +7,9 @@ import (
 )
 
 type Color struct {
-	Red uint8 `json:"r"`
+	Red   uint8 `json:"r"`
 	Green uint8 `json:"g"`
-	Blue uint8 `json:"b"`
+	Blue  uint8 `json:"b"`
 }
 
 func (c *Color) Hex() string {
