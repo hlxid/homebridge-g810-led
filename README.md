@@ -57,6 +57,8 @@ After=network-online.target
 
 [Service]
 Type=simple
+Restart=on-failure
+RestartSec=10s
 ExecStart=/bin/sh -c 'homebridge-g810-led-client --command g810-led --server ws://<homebridge-ip>:<port>'
 
 [Install]
