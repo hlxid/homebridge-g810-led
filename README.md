@@ -45,6 +45,8 @@ You may want to change the `--command` parameter to use the correct command for 
 
 The `--server` parameter sets the server. Change the ip and port accordingly.
 
+There is also a `--disableWhenIdle` flag that will disable the lighting of your keyboard when your computer is idling for extended periods of time or locked. This feature is disabled by default and you have to enable it by passing the `--disableWhenIdle` flag to the client.
+
 After you executed the command you can test whether everything works.
 
 As a permanent install I recommend creating a systemd service unit to start the client if you start your computer.
