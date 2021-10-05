@@ -26,7 +26,35 @@ func isCommandValid(command string) bool {
 	return err == nil
 }
 
+var color Color
+var isEnabled bool = true
+
 func setColor(c Color, command string) error {
+	color = c
+	return applyColor(command)
+}
+
+func turnOff(command string) error {
+	isEnabled = false
+	return applyColor(command)
+}
+
+func turnOn(command string) error {
+	isEnabled = true
+	return applyColor(command)
+}
+
+func applyColor(command string) error {
+	c := color
+	// Keyboard lighting is disabled, set to black
+	if !isEnabled {
+		c = Color{
+			Red:   0,
+			Green: 0,
+			Blue:  0,
+		}
+	}
+
 	cmd := exec.Command(command, "-a", c.Hex())
 	cmd.StderrPipe()
 	cmd.StdoutPipe()
