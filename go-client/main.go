@@ -14,7 +14,12 @@ func main() {
 	log.Println("Starting homebridge-g810-led client...")
 	defer log.Println("Shut down homebridge-g810-led client.")
 
-	server, command := parseFlags()
+	server, command, disableWhenIdle := parseFlags()
+
+	if disableWhenIdle {
+		dbus := connectToDbus(command)
+		defer dbus.Close()
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
@@ -37,9 +42,10 @@ func main() {
 	}
 }
 
-func parseFlags() (server, command string) {
+func parseFlags() (server, command string, disableWhenIdle bool) {
 	flag.StringVar(&server, "server", "", "the server with protocol and port where homebridge-g810-led is installed.")
 	flag.StringVar(&command, "command", "", "the g810-led type command for your exact keyboard model.")
+	flag.BoolVar(&disableWhenIdle, "disableWhenIdle", false, "disable lighting of your keyboard when your computer is idling")
 
 	flag.Parse()
 
