@@ -6,6 +6,8 @@ import (
 	"os/exec"
 )
 
+const dimSteps = 15
+
 type Color struct {
 	Red   uint8 `json:"r"`
 	Green uint8 `json:"g"`
@@ -27,35 +29,46 @@ func isCommandValid(command string) bool {
 }
 
 var color Color
-var isEnabled bool = true
 
 func setColor(c Color, command string) error {
 	color = c
-	return applyColor(command)
+	return applyColor(command, c)
 }
 
 func turnOff(command string) error {
-	isEnabled = false
-	return applyColor(command)
-}
-
-func turnOn(command string) error {
-	isEnabled = true
-	return applyColor(command)
-}
-
-func applyColor(command string) error {
-	c := color
-	// Keyboard lighting is disabled, set to black
-	if !isEnabled {
-		c = Color{
-			Red:   0,
-			Green: 0,
-			Blue:  0,
+	r, g, b := float64(color.Red), float64(color.Green), float64(color.Blue)
+	for i := dimSteps - 1; i >= 0; i-- {
+		c := Color{
+			Red:   uint8(r * float64(i) / dimSteps),
+			Green: uint8(g * float64(i) / dimSteps),
+			Blue: uint8(b * float64(i) / dimSteps),
+		}
+		if err := applyColor(command, c); err != nil {
+			return err
 		}
 	}
 
-	cmd := exec.Command(command, "-a", c.Hex())
+	return nil
+}
+
+func turnOn(command string) error {
+	r, g, b := float64(color.Red), float64(color.Green), float64(color.Blue)
+	for i := 1; i <= dimSteps; i++ {
+		c := Color{
+			Red:   uint8(r * float64(i) / dimSteps),
+			Green: uint8(g * float64(i) / dimSteps),
+			Blue: uint8(b * float64(i) / dimSteps),
+		}
+		if err := applyColor(command, c); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func applyColor(command string, color Color) error {
+	cmd := exec.Command(command, "-a", color.Hex())
 	cmd.StderrPipe()
 	cmd.StdoutPipe()
 	return cmd.Run()
