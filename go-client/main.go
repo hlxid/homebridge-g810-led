@@ -24,20 +24,30 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	conn := connectWS(server, ctx)
-	defer conn.Close()
-	log.Println("Connected to websocket server.")
+	conn, err := connectWS(server, ctx)
 
-	wsChan := buildWsRecvChan(conn)
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	if err != nil {
+		log.Printf("Failed to connect to ws server at %s: %v\n", server, err)
+		log.Println("No server, defaulting to 100% white");
 
-	for {
-		select {
-		case msg := <-wsChan:
-			handleWSMessage(msg, command)
-		case <-sigChan:
-			return
+		setColor(Color{255, 255, 255}, command)
+		// Do nothing else.
+		for {}
+	} else {
+		defer conn.Close()
+		log.Println("Connected to websocket server.")
+	
+		wsChan := buildWsRecvChan(conn)
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	
+		for {
+			select {
+			case msg := <-wsChan:
+				handleWSMessage(msg, command)
+			case <-sigChan:
+				return
+			}
 		}
 	}
 }

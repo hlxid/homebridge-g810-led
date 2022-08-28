@@ -18,13 +18,9 @@ func (msg *wsMessage) StringData() string {
 	return string(msg.Data)
 }
 
-func connectWS(server string, ctx context.Context) *websocket.Conn {
+func connectWS(server string, ctx context.Context) (*websocket.Conn, error) {
 	conn, _, err := websocket.DefaultDialer.DialContext(ctx, server, nil)
-	if err != nil {
-		log.Fatalln("cannot connect to websocket server:", err)
-	}
-
-	return conn
+	return conn, err
 }
 
 func buildWsRecvChan(conn *websocket.Conn) <-chan wsMessage {
