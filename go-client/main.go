@@ -32,7 +32,7 @@ func main() {
 
 		setColor(Color{255, 255, 255}, command)
 		// Do nothing else.
-		for {}
+		select {}
 	} else {
 		defer conn.Close()
 		log.Println("Connected to websocket server.")
